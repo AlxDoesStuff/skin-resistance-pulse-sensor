@@ -2,20 +2,23 @@
 ## Widerstandsmessgerät
 
 #### Bauweise:
-- Zweiseitiges Klebeband auf Klettband ankleben
+- Doppelseitiges Klebeband auf Klettband ankleben
 - Messdraht auf Klebeband ankleben
 - Alu in Kontakt mit draht zum Klebeband ankleben
+- Rückseite mit Tesa festmachen
 
-#### Anschlißen:
-- Zwei Sensoren an einem Finger in 4cm abstand an der passiven Hand ankleben
-- Ein Sensor an 5V anschließen
-- Anderen Sensor an einem analogem Eingang und durch Widerstand an Ground anschlißen 
+#### Verwenden:
+- Die zwei Sensoren eng an dem kleinen Finger in maximalem Abstand an der passiven Hand ankleben
+- Die Sensoren wie im Schaltplan beschrieben an ESP anschließen 
 
-## Herzmessgerät
+## Herzfrequenzmessgerät
 
 #### Bauweise:
-- Vorgebautes Messgerät
+- Doppelseitiges Klebeband an ein ausreichend langes Velcro-Klettband kleben, Sensor an das Klebeband kleben
 
-#### Anschlißen:
-- Den Sensor an einer anderen fingerspitze anschlißen wie den Hautwiderstandssensor
-- Eine Folie dazwischenlegen und dass Messgerät auch mit Klettband festmachen
+#### Verwenden:
+- Den Sensor mithilfe des Klettbands eng an den Daumen schließen
+- Den Sensor wie im Schaltplan beschrieben an ESP anschließen
+
+## Schaltplan
+![image info](./Schaltplan.png)
