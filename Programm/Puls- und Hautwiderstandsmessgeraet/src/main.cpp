@@ -29,7 +29,6 @@ int skinResistance = 0; //Derzeitiger Hautwiderstand in Ohm
 
 void setup() {
   Serial.begin(115200); //Seriellen Monitor beginnen
-  float currTime = millis(); //Timestamp des setups registrieren
   // --WLAN-Verbindung--
   WiFi.begin(SSID, PASSWORD); //Mit WLAN-Netzwerk verbinden
   // Warten, bis mit WLAN verbunden wurde
@@ -41,7 +40,7 @@ void setup() {
   }
   Serial.println("Mit WLAN verbunden!");
   HTTPClient http; 
-  String url = String(SERVERURL) + "/connected/" + String(ESP_ID) + "/time/" + String(currTime); //Verbindungsankündigung-Reqeust
+  String url = String(SERVERURL) + "/connected/" + String(millis()) + "/" + String(ESP_ID); //Verbindungsankündigung-Reqeust: URL/connected/Zeit/ID
   http.begin(url); 
   http.GET(); //Request absenden
 
@@ -49,7 +48,7 @@ void setup() {
 
 void loop() {
   //Zeit
-  float currTime = millis(); //Wie lang der ESP bereits läuft
+  int currTime = millis(); //Wie lang der ESP bereits läuft
 
   //-- HERZFREQUENZMESSUNG --
   freqSampleBuffer[freqBufferIndex] = analogRead(FREQUENCY_MEASUREMENT_PIN); //Messung in Messreihe eintragen
@@ -121,7 +120,7 @@ void loop() {
   //-- Daten Senden --
   //Daten senden per HTTP request (Die Daten werden später auf dem Server aus der URL geschlossen)
   HTTPClient http; 
-  String url = String(SERVERURL) + "/bpm/" + String(pulse) + "/skinResistance/" + String(skinResistance)+"/currentTime/" + String(currTime) + "/clientID/" + String(ESP_ID); //Request aufbauen
+  String url = String(SERVERURL) + "/data/" + String(pulse) + "/" + String(skinResistance)+"/" + String(currTime) + "/" + String(ESP_ID); //Request aufbauen: URL/data/Puls/Hautwiderstand/Zeit/ID
   http.begin(url); 
   http.GET(); //Request absenden
   delay(20); //Alle 20ms Messungen machen & Senden
