@@ -6,10 +6,10 @@
 //WLAN und HTTP-Konstanten
 const char *SSID = "SSID"; //Mit Netzwerk-SSID ersetzen
 const char *PASSWORD = "PASSWORD"; //Mit Netzwerk-Passwort ersetzen
-const char *SERVERURL = "http://192.168.0.21:8000"; //Mit Messlaptop-IP im öokalen Netzwerk ersetzen
+const char *SERVERURL = "http://0.0.0.0:8000"; //Mit Messlaptop-IP im öokalen Netzwerk ersetzen
 const int ESP_ID = 1; //ID des ESPs
 //Herzfrequenz-Konstanten
-const float THRESH_FACTOR = 0.75; //Schwelle (80% der Differenz), über der ein Herzschlag registriert wird
+const float THRESH_FACTOR = 0.7; //Schwelle (80% der Differenz), über der ein Herzschlag registriert wird
 const int FREQ_MIN_DIFF = 10; //Minimale Differenz des Minimums und Maximums des Wertebereichs bei der Herzfrequenzmessung 
 const int FREQ_SAMPLES = 250; //Anzahl der Messungen in einer Herzfrequenz-Messreihe
 //Widerstandsberechnungs-Konstanten
@@ -21,7 +21,7 @@ int freqBufferIndex = 0; //Nummer der letzten Herzfrequenz-Messung
 long lastTime = 0; //Timestamp der letzten Herzfrequenz-Messreihen-Auswertung 
 int pulse = 0; //Derzeitige Herzfrequenz in BPM
 //Widerstandsberechnungs-Variablen
-int skinResistance = 0; //Derzeitiger Hautwiderstand in OHM
+int skinResistance = 0; //Derzeitiger Hautwiderstand in Ohm
 //Pins
 #define FREQUENCY_MEASUREMENT_PIN 32 //Herzfrequenzsensor-Pin
 #define RESISTANCE_MEASUREMENT_PIN 33 //Hautwiderstandssensor-Pin
@@ -35,7 +35,7 @@ void setup() {
   // Warten, bis mit WLAN verbunden wurde
   while (WiFi.status() != WL_CONNECTED)
   {
-        delay(1000);
+        delay(500);
         Serial.print("Verbinde mit WLAN, SSID: ");
         Serial.println(SSID);
   }
@@ -76,7 +76,7 @@ void loop() {
       if(freqSampleBuffer[(freqBufferIndex+i+1)%FREQ_SAMPLES] >= threshold 
           && freqSampleBuffer[(freqBufferIndex+i)%FREQ_SAMPLES] < threshold) {
         //Überprüfen, ob der letzte Herzschlag zu kurz her oder zu lang her ist
-        if(lastHeartbeat && i-lastHeartbeat > 15 && i-lastHeartbeat < 150) {
+        if(lastHeartbeat && i-lastHeartbeat > 5 && i-lastHeartbeat < 150) {
           tHeartbeats += i-lastHeartbeat; //???
           nHeartbeats++; //Herzschläge inkrementieren
         }
@@ -84,16 +84,13 @@ void loop() {
         lastHeartbeat = i;
       }
     }
-    float bpm = 30000.0 * nHeartbeats / (tHeartbeats * 20); //BPM berechnen; Schwarze Magie
-
+    float bpm = (60000.0 * nHeartbeats / (tHeartbeats * 20) )/2; //BPM berechnen; Schwarze Magie
     //Ergebnisse Ausgeben wenn genug Herzschläge gefunden werden
     if(nHeartbeats > 3) {
-       pulse  = bpm;
+       pulse  = bpm; //Puls ausgeben wenn genug Herzschläge gefunden werden
     }
   }
   freqBufferIndex = (freqBufferIndex+1) % FREQ_SAMPLES; //Index inkrementieren
-
-
   //-- HAUTWIDERSTANDSMESSUNG --
 
   float rawResistance = analogRead(RESISTANCE_MEASUREMENT_PIN);
@@ -121,13 +118,11 @@ void loop() {
   Serial.print("; Pulse: ");
   Serial.print(pulse);
   Serial.println();
-
   //-- Daten Senden --
   //Daten senden per HTTP request (Die Daten werden später auf dem Server aus der URL geschlossen)
   HTTPClient http; 
   String url = String(SERVERURL) + "/bpm/" + String(pulse) + "/skinResistance/" + String(skinResistance)+"/currentTime/" + String(currTime) + "/clientID/" + String(ESP_ID); //Request aufbauen
   http.begin(url); 
   http.GET(); //Request absenden
-
   delay(20); //Alle 20ms Messungen machen & Senden
 }
