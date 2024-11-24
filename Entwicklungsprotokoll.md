@@ -22,11 +22,10 @@
 
 ## 23.11.24
 - Gehäuse der Messgeräte fertigstellen
-- Datenverarbeitung auf dem Deno-Server programmiert
 
 ## 24.11.24
 - Testen aller Messgeräte mit Verbindung zum Server
-
+- Datenverarbeitung auf dem Deno-Server programmiert
 
 ## Schaltplan
 ![image](./Schaltplan.png)

@@ -16,6 +16,8 @@ async function handler(_req: Request){
       const hh = realTime.getHours();
       const mm = realTime.getMinutes();
       const ss = realTime.getSeconds();
+      //Verbindung in konsole vermerken
+      console.log("Neuer ESP verbunden mit ID: " + connectIDParsed);
       //Tabelle erstellen mit Name: ID + Datum und Uhrzeit und Erste Zeile: Zeit, Puls und Widerstand
       const newTableName = TABLE_DIRECTORY + connectIDParsed + "--"+DD+"-"+MM+"-"+YYYY+"-"+hh+"-"+mm+"-"+ss+".csv" //Name der neuen Tabelle
       await Deno.writeTextFile(newTableName, "Zeit,Puls,Widerstand\n"); //Neue Tabelle erstellen
@@ -35,10 +37,14 @@ async function handler(_req: Request){
       await Deno.writeTextFile(tableName, dataTimeParsed + "," + pulseParsed + "," + skinResistanceParsed +"\n", { append: true });
     }
     else{  
-      console.log("Incorrect URL: "+requestURL); //Falsche URL-formate zur Konsole ausgeben
+      console.log("Falsches URL-Format: "+requestURL); //Falsche URL-formate zur Konsole ausgeben
       return new Response("404"); //404 antworten
     }
     
-  }  return new Response("OK"); //Auf alle korrekten Requests OK antworten 
+  }else{
+    console.log("Falsches URL-Format: "+requestURL); //Falsche URL-formate zur Konsole ausgeben
+    return new Response("404"); //404 antworten
+  }  
+  return new Response("OK"); //Auf alle korrekten Requests OK antworten 
 }
 
