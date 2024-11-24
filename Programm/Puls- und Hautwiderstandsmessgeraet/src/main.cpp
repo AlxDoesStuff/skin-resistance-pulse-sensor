@@ -3,11 +3,12 @@
 #include <HTTPClient.h>
 #include <math.h>
 
-//WLAN und HTTP-Konstanten
+//WLAN und HTTP
 const char *SSID = "SSID"; //Mit Netzwerk-SSID ersetzen
 const char *PASSWORD = "PASSWORD"; //Mit Netzwerk-Passwort ersetzen
-const char *SERVERURL = "http://0.0.0.0:8000"; //Mit Messlaptop-IP im öokalen Netzwerk ersetzen
+const char *SERVERURL = "0.0.0.0:8000"; //Mit Messlaptop-IP im öokalen Netzwerk ersetzen
 const int ESP_ID = 1; //ID des ESPs
+long lastData = 0; //Timestamp der letzten HTTP-request
 //Herzfrequenz-Konstanten
 const float THRESH_FACTOR = 0.7; //Schwelle (80% der Differenz), über der ein Herzschlag registriert wird
 const int FREQ_MIN_DIFF = 10; //Minimale Differenz des Minimums und Maximums des Wertebereichs bei der Herzfrequenzmessung 
@@ -47,24 +48,21 @@ void setup() {
 }
 
 void loop() {
-  //Zeit
   int currTime = millis(); //Wie lang der ESP bereits läuft
 
   //-- HERZFREQUENZMESSUNG --
   freqSampleBuffer[freqBufferIndex] = analogRead(FREQUENCY_MEASUREMENT_PIN); //Messung in Messreihe eintragen
-
   //Messreihe alle 5 Sekunden in BPM anzeigen
   if(millis()-lastTime > 500 && freqBufferIndex == FREQ_SAMPLES-1) {
     lastTime = millis(); //Timestamp der letzten Messung 
-    //Analoger Eingang grenzwerte
+    //Analoger Eingang Grenzwerte
     int maxValue = 0;
     int minValue = 4096;
-    // Calculate maximum and minimum
+    // Minimum und Maximum des Wertebereichs ausrechnen
     for(int i = 0; i < FREQ_SAMPLES; i++) {
       maxValue = max(freqSampleBuffer[i], maxValue);
       minValue = min(freqSampleBuffer[i], minValue); 
     }
-  
     float diff = max(maxValue - minValue, FREQ_MIN_DIFF); //Wertebereich ausrechnen
     float threshold = diff * THRESH_FACTOR + minValue; //Herzschlagschwelle für den derzeitigen Wertebereich ausrechnen
     int nHeartbeats = 0; //Menge der Herzschläge in dem derzeitigen Buffer
@@ -90,13 +88,12 @@ void loop() {
     }
   }
   freqBufferIndex = (freqBufferIndex+1) % FREQ_SAMPLES; //Index inkrementieren
-  //-- HAUTWIDERSTANDSMESSUNG --
 
+  //-- HAUTWIDERSTANDSMESSUNG --
   float rawResistance = analogRead(RESISTANCE_MEASUREMENT_PIN);
   float vOut = 0; //Zwischenvariable in der Widerstandsberechnung
   float resistanceBuffer = 0; //Zwischencariable in der Widerstandsberechnung
   int resistanceCalculated = 0; //Berechneter Widerstans
-
   if (rawResistance > 0 && rawResistance < 4095)
   {
     //Widerstand berechnen
@@ -106,22 +103,19 @@ void loop() {
     resistanceCalculated = KNOWN_RESISTANCE * resistanceBuffer;
     skinResistance = resistanceCalculated;
   }else{
-    skinResistance = 0; //0 schicken wenn die Messung zu niedrig ist
+    skinResistance = 0; //0 senden wenn die Messung zu niedrig ist
     if (rawResistance > 4095){
-      skinResistance = 2000000; //2M schicken wenn die Messung zu hoch ist
+      skinResistance = 3000000; //3M senden wenn die Messung zu hoch ist
     }
   }
-  //Ergebnisse an Seriellen Monitor ausgeben
-  Serial.print("Resistance: ");
-  Serial.print(skinResistance);
-  Serial.print("; Pulse: ");
-  Serial.print(pulse);
-  Serial.println();
   //-- Daten Senden --
-  //Daten senden per HTTP request (Die Daten werden später auf dem Server aus der URL geschlossen)
-  HTTPClient http; 
-  String url = String(SERVERURL) + "/data/" + String(pulse) + "/" + String(skinResistance)+"/" + String(currTime) + "/" + String(ESP_ID); //Request aufbauen: URL/data/Puls/Hautwiderstand/Zeit/ID
-  http.begin(url); 
-  http.GET(); //Request absenden
-  delay(20); //Alle 20ms Messungen machen & Senden
+  //Alle 500m Daten senden per HTTP request (Die Daten werden später auf dem Server aus der URL geschlossen)
+  if(millis()-lastData >= 500){
+    HTTPClient http;
+    String url = String(SERVERURL) + "/data/" + String(pulse) + "/" + String(skinResistance)+"/" + String(currTime) + "/" + String(ESP_ID); //Request aufbauen: URL/data/Puls/Hautwiderstand/Zeit/ID
+    http.begin(url); 
+    http.GET(); //Request absenden
+    lastData = millis(); //Timestamp der letzten Messung
+  }
+  delay(20); //Alle 20ms loop ausführen (sonst kommt der Mikrokontroller nicht mehr mit)
 }
