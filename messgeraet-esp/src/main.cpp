@@ -31,25 +31,23 @@ int skinResistance = 0; //Derzeitiger Hautwiderstand in Ohm
 void setup() {
   Serial.begin(115200); //Seriellen Monitor beginnen
   // --WLAN-Verbindung--
-  WiFi.begin(SSID, PASSWORD); //Mit WLAN-Netzwerk verbinden
   // Warten, bis mit WLAN verbunden wurde
+  WiFi.begin(SSID, PASSWORD); //Mit WLAN-Netzwerk verbinden
   while (WiFi.status() != WL_CONNECTED)
   {
         delay(500);
         Serial.print("Verbinde mit WLAN, SSID: ");
-        Serial.println(SSID);
+        Serial.println(SSID);   
   }
   Serial.println("Mit WLAN verbunden!");
   HTTPClient http; 
   String url = String(SERVERURL) + "/connected/" + String(millis()) + "/" + String(ESP_ID); //Verbindungsankündigung-Reqeust: URL/connected/Zeit/ID
   http.begin(url); 
   http.GET(); //Request absenden
-
 }
 
 void loop() {
   int currTime = millis(); //Wie lang der ESP bereits läuft
-
   //-- HERZFREQUENZMESSUNG --
   freqSampleBuffer[freqBufferIndex] = analogRead(FREQUENCY_MEASUREMENT_PIN); //Messung in Messreihe eintragen
   //Messreihe alle 5 Sekunden in BPM anzeigen
