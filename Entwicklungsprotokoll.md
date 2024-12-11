@@ -27,5 +27,9 @@
 - Testen aller Messgeräte mit Verbindung zum Server
 - Datenverarbeitung auf dem Deno-Server programmiert
 
+## 11.12.24
+- Programmablaufplan & Dokumentation fertigstellen
+
+
 ## Schaltplan
 ![image](./Schaltplan.png)
